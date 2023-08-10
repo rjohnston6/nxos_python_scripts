@@ -51,3 +51,5 @@ def csv_report(headers, output_file, data):
         for rows in data:
             for row in rows:
                 writer.writerow(row)
+
+    file.close()
