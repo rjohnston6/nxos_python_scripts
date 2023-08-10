@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""NXOS Python Scripts Console Script.
+"""NXOS Python Scripts.
 
 Copyright (c) 2023 Cisco and/or its affiliates.
 
@@ -19,6 +19,13 @@ or implied.
 
 """
 
+__author__ = "Russell Johnston"
+__email__ = "rujohns2@cisco.com"
+__version__ = "0.1.0"
+__copyright__ = "Copyright (c) 2023 Cisco and/or its affiliates."
+__license__ = "Cisco Sample Code License, Version 1.1"
+__credits__ = ["Juan Andres Rocha Bravo"]
+
 import logging
 import argparse
 import multiprocessing
@@ -29,13 +36,6 @@ from rich.console import Console
 
 from helper import devices, reporting
 from helper.device_connect import query_device
-
-__author__ = "Russell Johnston"
-__email__ = "rujohns2@cisco.com"
-__version__ = "0.1.0"
-__copyright__ = "Copyright (c) 2023 Cisco and/or its affiliates."
-__license__ = "Cisco Sample Code License, Version 1.1"
-__credits__ = ["Juan Andres Rocha Bravo"]
 
 FORMAT = "%(message)s"
 logging.basicConfig(
