@@ -4,58 +4,42 @@
 
 ---
 
-**ToDo's:**
-
-- [ ] Consider writing your README first.  Doing so helps you clarify your intent, focuses your project, and it is much more fun to write documentation at the beginning of a project than at the end of one, see:
-    - [Readme Driven Development](http://tom.preston-werner.com/2010/08/23/readme-driven-development.html)
-    - [GitHub Guides: Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
-- [ ] Ensure you put the [license and copyright header](./HEADER) at the top of all your source code files.
-- [ ] Be mindful of the third-party materials you use and ensure you follow Cisco's policies for creating and sharing Cisco Sample Code.
-
----
-
 ## Motivation
 
-Include a short description of the motivation behind the creation and maintenance of the project.  Explain **why** the project exists.
-
-## Show Me!
-
-What visual, if shown, clearly articulates the impact of what you have created?  In as concise a visualization as possible (code sample, CLI output, animated GIF, or screenshot) show what your project makes possible.
+To assist in quering and reporting on various elements of Nexus configurations and deployments, this repo is a collection of scripts and modules that can help simplify the collection of data across a number of devices. The initial purpose is to connect to devices and identify orphan ports across a deployment.
 
 ## Features
 
-Include a succinct summary of the features/capabilities of your project.
-
-- Feature 1
-- Feature 2
-- Feature 3
-
-## Technologies & Frameworks Used
-
-This is Cisco Sample Code!  What Cisco and third-party technologies are you working with?  Are you using a coding framework or software stack?  A simple list will set the context for your project.
-
-**Cisco Products & Services:**
-
-- Product
-- Service
-
-**Third-Party Products & Services:**
-
-- Product
-- Service
-
-**Tools & Frameworks:**
-
-- Framework 1
-- Automation Tool 2
+Inital features include options to display data in 2 methods.
+- Output to a formatted table on the terminal for quick point in time analysis
+- Optionally, export to a csv file the returned results.
 
 ## Usage
 
-If people like your project, they will want to use it.  Show them how.
+To use the included scripts start by cloning the repo to your local development machine. 
 
-## Installation
+```git clone https://github.com/rjohnston6/nxos_python_scripts.git```
 
-Provide a step-by-step series of examples and explanations for how to install your project and its dependencies.
+**Note**: It is recommended to create or use an existing python Virtual Environment, the remainder of the instructions assumes an activated virtual environment before proceeding.
+
+Next install the required Python Libraries needed to run the script. From a command line use pip and reference the ```requirements.txt``` file to install the required libraries.
+
+```pip install -r requirements.txt```
+
+Once cloned to report on the "orphan ports"  in the environment start by creating or editing the included ```devices.txt```  file with a list of management IP address for your devices one IP per line. 
+
+Finally, to query the devices run the following:
+
+```python orphan_ports.py -t```
+
+This will execute the script asking for a global username and password to be able to connect to the devices and then return a formated table to the terminal. Optional flags are available that can be used when executing the script.
+
+| Flag | Usage |
+| ---- | ----- |
+| -t | Display terminal formated table |
+| -r | Output to a CSV report named "orphan_ports.csv" |
+| -d STRING | To define an alternate .txt file of management addresses |
+
 
 ## Authors & Maintainers
 
@@ -65,7 +49,7 @@ Smart people responsible for the creation and maintenance of this project:
 
 ## Credits
 
-Give proper credit.  Inspired by another project or article?  Was your work made easier by a tutorial?  Include links to the people, projects, and resources that were influential in the creation of this project.
+This project was an adaptation of a very smart engineer Juan Andres Rocha Bravo, that created a similar script to query devices and output results to multiple files based on the device and a provided list of commands. Without his previous work this would have taken much longer to prepare.
 
 ## License
 
