@@ -107,8 +107,12 @@ if __name__ == "__main__":
         output.append(mpQueue.get())
 
     if args.csv_report:
+        d = datetime.now()
         csv_headers = ["hostname", "mgmt_ip", "vpc_vlan", "orphan_ports"]
-        reporting.csv_report(csv_headers, "orphan_ports.csv", output)
+        # Generate csv report with included date and time of creation.
+        reporting.csv_report(
+            csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
+        )
 
     if args.print_table:
         tbl_columns = ["Hostname", "Management IP", "VPC VLAN", "Orphan Ports"]
