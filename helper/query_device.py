@@ -48,7 +48,7 @@ def json(device, commands):
         logging.info(f"Connected from {device['host']}")
 
         hostname = net_connect.send_command("show hostname")
-        output[hostname] = {}
+        output[hostname.split()[0]] = {}
 
         for command in commands:
             if "json" in command:
