@@ -132,14 +132,14 @@ if __name__ == "__main__":
                             "TABLE_orphan_ports"
                         ]["ROW_orphan_ports"]:
                             ports = vlan["vpc-orphan-ports"].split(",")
+                            data = {
+                                "hostname": k,
+                                "mgmt-ip": ip_addr,
+                                "vpc-vlan": vlan["vpc-vlan"],
+                            }
                             for port in ports:
                                 # neighbor = search_neighbors(neighbors, port)
-                                data = {
-                                    "hostname": k,
-                                    "mgmt-ip": ip_addr,
-                                    "vpc-vlan": vlan["vpc-vlan"],
-                                    "orphan-port": port,
-                                }
+                                data["orphan-port"]: port
 
                                 # if neighbor is None:
                                 #     data["lldp-neighbor"] = ""
@@ -154,16 +154,16 @@ if __name__ == "__main__":
                         ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                             "ROW_orphan_ports"
                         ]["vpc-orphan-ports"].split(",")
+                        data = {
+                            "hostname": k,
+                            "mgmt-ip": ip_addr,
+                            "vpc-vlan": v["show vpc orphan-ports | json"][
+                                "TABLE_orphan_ports"
+                            ]["ROW_orphan_ports"]["vpc-vlan"],
+                        }
                         for port in ports:
                             # neighbor = search_neighbors(neighbors, port)
-                            data = {
-                                "hostname": k,
-                                "mgmt-ip": ip_addr,
-                                "vpc-vlan": v["show vpc orphan-ports | json"][
-                                    "TABLE_orphan_ports"
-                                ]["ROW_orphan_ports"]["vpc-vlan"],
-                                "orphan-port": port,
-                            }
+                            data["orphan-port"] = port
                             # if neighbor is None:
                             #     data["lldp-neighbor"] = ""
                             #     data["lldp-neighbor-mgmt-ip"] = ""
