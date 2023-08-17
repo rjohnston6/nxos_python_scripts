@@ -54,7 +54,7 @@ def run_commands(device, commands, mpQueue):
     When the function gets the tuple it will extract the device and add it
     to the mpQueue
     """
-    result = query_device.json(device, commands)
+    result = query_device.json_cmd(device, commands)
 
     if isinstance(result, tuple):
         mpQueue.put(None)

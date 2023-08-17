@@ -34,7 +34,7 @@ from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutExc
 log = logging.getLogger(__name__)
 
 
-def json(device, commands):
+def json_cmd(device, commands):
     """
     This function connects to a device gathers the hostname and runs the
     provided commands then returns a dictionary
@@ -54,7 +54,7 @@ def json(device, commands):
         for command in commands:
             if "json" in command:
                 command_out = net_connect.send_command(command)
-                output[hostname][command] = command_out
+                output[hostname][command] = json.loads(command_out)
 
             else:
                 logging.info(
