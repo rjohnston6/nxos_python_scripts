@@ -54,7 +54,10 @@ def json_cmd(device, commands):
         for command in commands:
             if "json" in command:
                 command_out = net_connect.send_command(command)
-                output[hostname][command] = json.loads(command_out)
+                if "Note" in command_out:
+                    output[hostname][command] = json.loads(command_out)
+                else:
+                    output[hostname][command] = "Empty JSON"
 
             else:
                 logging.info(
