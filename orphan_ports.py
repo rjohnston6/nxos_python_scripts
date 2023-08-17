@@ -35,7 +35,7 @@ from rich.logging import RichHandler
 from rich.console import Console
 
 from helper import devices, reporting
-from helper.device_connect import query_device
+from helper import query_device
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -47,14 +47,14 @@ log = logging.getLogger(__name__)
 console = Console()
 
 
-def run_command(device, mpQueue):
+def run_commands(device, commands, mpQueue):
     """
     This is a wraper of the run_commands function.Original function returns
     a tuple with the device and the Authentication Exception
     When the function gets the tuple it will extract the device and add it
     to the mpQueue
     """
-    result = query_device(device)
+    result = query_device.json(device, commands)
 
     if isinstance(result, tuple):
         mpQueue.put(None)
@@ -97,7 +97,10 @@ if __name__ == "__main__":
     output = []
 
     for device in devices:
-        p = multiprocessing.Process(target=run_command, args=(device, mpQueue))
+        commands = ["show vpc orphan-ports | json", "show lldp neighbors | json"]
+        p = multiprocessing.Process(
+            target=run_commands, args=(device, commands, mpQueue)
+        )
 
         processes.append(p)
         p.start()
@@ -106,28 +109,30 @@ if __name__ == "__main__":
         p.join()
         output.append(mpQueue.get())
 
-    if args.csv_report:
-        d = datetime.now()
-        csv_headers = ["hostname", "mgmt_ip", "vpc_vlan", "orphan_ports"]
-        # Generate csv report with included date and time of creation.
-        reporting.csv_report(
-            csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
-        )
+    print(output)
 
-    if args.print_table:
-        tbl_columns = ["Hostname", "Management IP", "VPC VLAN", "Orphan Ports"]
-        table = reporting.terminal_table_report("Orphan Ports", tbl_columns)
+    # if args.csv_report:
+    #     d = datetime.now()
+    #     csv_headers = ["hostname", "mgmt_ip", "vpc_vlan", "orphan_ports"]
+    #     # Generate csv report with included date and time of creation.
+    #     reporting.csv_report(
+    #         csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
+    #     )
 
-        for row in output:
-            for vlan in row:
-                table.add_row(
-                    vlan["hostname"],
-                    vlan["mgmt_ip"],
-                    vlan["vpc_vlan"],
-                    vlan["orphan_ports"],
-                )
+    # if args.print_table:
+    #     tbl_columns = ["Hostname", "Management IP", "VPC VLAN", "Orphan Ports"]
+    #     table = reporting.terminal_table_report("Orphan Ports", tbl_columns)
 
-        console.print(table)
+    #     for row in output:
+    #         for vlan in row:
+    #             table.add_row(
+    #                 vlan["hostname"],
+    #                 vlan["mgmt_ip"],
+    #                 vlan["vpc_vlan"],
+    #                 vlan["orphan_ports"],
+    #             )
+
+    #     console.print(table)
 
     finish_time = datetime.now()
     exec_time = (finish_time - start_time).total_seconds()
