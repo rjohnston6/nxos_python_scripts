@@ -133,7 +133,7 @@ if __name__ == "__main__":
                         ]["ROW_orphan_ports"]:
                             ports = vlan["vpc-orphan-ports"].split(",")
                             for port in ports:
-                                neighbor = search_neighbors(neighbors, port)
+                                # neighbor = search_neighbors(neighbors, port)
                                 data = {
                                     "hostname": k,
                                     "mgmt-ip": ip_addr,
@@ -141,21 +141,21 @@ if __name__ == "__main__":
                                     "orphan-port": port,
                                 }
 
-                                if neighbor is None:
-                                    data["lldp-neighbor"] = ""
-                                    data["lldp-neighbor-mgmt-ip"] = ""
-                                else:
-                                    data["lldp-neighbor"] = neighbor["chassis_id"]
-                                    data["lldp-neighbor-mgmt-ip"] = neighbor[
-                                        "mgmt_addr"
-                                    ]
+                                # if neighbor is None:
+                                #     data["lldp-neighbor"] = ""
+                                #     data["lldp-neighbor-mgmt-ip"] = ""
+                                # else:
+                                #     data["lldp-neighbor"] = neighbor["chassis_id"]
+                                #     data["lldp-neighbor-mgmt-ip"] = neighbor[
+                                #         "mgmt_addr"
+                                #     ]
                                 output.append(data)
                     else:
                         ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                             "ROW_orphan_ports"
                         ]["vpc-orphan-ports"].split(",")
                         for port in ports:
-                            neighbor = search_neighbors(neighbors, port)
+                            # neighbor = search_neighbors(neighbors, port)
                             data = {
                                 "hostname": k,
                                 "mgmt-ip": ip_addr,
@@ -164,12 +164,12 @@ if __name__ == "__main__":
                                 ]["ROW_orphan_ports"]["vpc-vlan"],
                                 "orphan-port": port,
                             }
-                            if neighbor is None:
-                                data["lldp-neighbor"] = ""
-                                data["lldp-neighbor-mgmt-ip"] = ""
-                            else:
-                                data["lldp-neighbor"] = neighbor["chassis_id"]
-                                data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
+                            # if neighbor is None:
+                            #     data["lldp-neighbor"] = ""
+                            #     data["lldp-neighbor-mgmt-ip"] = ""
+                            # else:
+                            #     data["lldp-neighbor"] = neighbor["chassis_id"]
+                            #     data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
                             output.append(data)
 
     for row in output:
