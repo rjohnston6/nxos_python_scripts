@@ -168,16 +168,20 @@ if __name__ == "__main__":
                             data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
                         output.append(data)
 
-    for row in output:
-        print(row)
-
-    # if args.csv_report:
-    #     d = datetime.now()
-    #     csv_headers = ["hostname", "mgmt_ip", "vpc_vlan", "orphan_ports"]
-    #     # Generate csv report with included date and time of creation.
-    #     reporting.csv_report(
-    #         csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
-    #     )
+    if args.csv_report:
+        d = datetime.now()
+        csv_headers = [
+            "hostname",
+            "mgmt-ip",
+            "vpc-vlan",
+            "orphan-port",
+            "lldp-neighbor",
+            "lldp-neighbor-mgmt-ip",
+        ]
+        # Generate csv report with included date and time of creation.
+        reporting.csv_report(
+            csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
+        )
 
     if args.print_table:
         tbl_columns = [
