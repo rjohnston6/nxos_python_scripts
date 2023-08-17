@@ -186,8 +186,8 @@ if __name__ == "__main__":
             "Management IP",
             "VPC VLAN",
             "Orphan Port",
-            # "LLDP Neighbor",
-            # "LLDP Neighbor IP",
+            "LLDP Neighbor",
+            "LLDP Neighbor IP",
         ]
         table = reporting.terminal_table_report("Orphan Ports", tbl_columns)
 
@@ -197,8 +197,8 @@ if __name__ == "__main__":
                 row["mgmt-ip"],
                 row["vpc-vlan"],
                 row["orphan-port"],
-                # row["lldp-neighbor"],
-                # row["lldp-neighbor-mgmt-ip"],
+                row["lldp-neighbor"],
+                row["lldp-neighbor-mgmt-ip"],
             )
 
         console.print(table)
