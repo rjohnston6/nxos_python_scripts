@@ -126,29 +126,32 @@ if __name__ == "__main__":
                         ]["ROW_orphan_ports"]:
                             ports = vlan["vpc-orphan-ports"].split(",")
                             for port in ports:
+                                neighbor = next(
+                                    (
+                                        item
+                                        for item in test
+                                        if item["l_port_id"] == port
+                                    ),
+                                    None,
+                                )
                                 data = {
                                     "hostname": k,
                                     "mgmt-ip": ip_addr,
                                     "vpc-vlan": vlan["vpc-vlan"],
                                     "orphan-port": port,
+                                    "lldp-neighbor": neighbor["chassis_id"],
+                                    "lldp-neighbor-mgmt-ip": neighbor["mgmt_addr"],
                                 }
-                                for neighbor in v["show lldp neighbors | json"][
-                                    "TABLE_nbor"
-                                ]["ROW_nbor"]:
-                                    if port in neighbor["l_port_id"]:
-                                        data["lldp-neighbor"] = neighbor["chassis_id"]
-                                        data["lldp-neighbor-mgmt-ip"] = neighbor[
-                                            "mgmt_addr"
-                                        ]
-                                    else:
-                                        data["lldp-neighbor"] = ""
-                                        data["lldp-neighbor-mgmt-ip"] = ""
                                 output.append(data)
                     else:
                         ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                             "ROW_orphan_ports"
                         ]["vpc-orphan-ports"].split(",")
                         for port in ports:
+                            neighbor = next(
+                                (item for item in test if item["l_port_id"] == port),
+                                None,
+                            )
                             data = {
                                 "hostname": k,
                                 "mgmt-ip": ip_addr,
@@ -156,18 +159,9 @@ if __name__ == "__main__":
                                     "TABLE_orphan_ports"
                                 ]["ROW_orphan_ports"]["vpc-vlan"],
                                 "orphan-port": port,
+                                "lldp-neighbor": neighbor["chassis_id"],
+                                "lldp-neighbor-mgmt-ip": neighbor["mgmt_addr"],
                             }
-                            for neighbor in v["show lldp neighbors | json"][
-                                "TABLE_nbor"
-                            ]["ROW_nbor"]:
-                                if port in neighbor["l_port_id"]:
-                                    data["lldp-neighbor"] = neighbor["chassis_id"]
-                                    data["lldp-neighbor-mgmt-ip"] = neighbor[
-                                        "mgmt_addr"
-                                    ]
-                                else:
-                                    data["lldp-neighbor"] = ""
-                                    data["lldp-neighbor-mgmt-ip"] = ""
                             output.append(data)
 
     for row in output:
