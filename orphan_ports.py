@@ -112,7 +112,8 @@ if __name__ == "__main__":
     output = []
     for switch in raw_output:
         for k, v in switch.items():
-            ip_addr = v["mgmt-ip"]
+            print(v)
+            # ip_addr = v["mgmt-ip"]
             for ports in v:
                 if "Empty JSON" not in v["show vpc orphan-ports | json"]:
                     if isinstance(
