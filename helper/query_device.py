@@ -50,6 +50,7 @@ def json_cmd(device, commands):
         hostname = net_connect.send_command("show hostname")
         hostname = hostname.split()[0]
         output[hostname] = {}
+        output["mgmt-ip"] = device["host"]
 
         for command in commands:
             if "json" in command:
