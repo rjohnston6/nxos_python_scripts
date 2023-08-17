@@ -130,7 +130,7 @@ if __name__ == "__main__":
                     for vlan in v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                         "ROW_orphan_ports"
                     ]:
-                        ports = vlan["vpc-orphan-ports"].split(",")
+                        ports = [x.strip() for x in vlan["vpc-orphan-ports"].split(",")]
                         for port in ports:
                             neighbor = search_neighbors(neighbors, port)
                             data = {
@@ -139,13 +139,13 @@ if __name__ == "__main__":
                                 "vpc-vlan": vlan["vpc-vlan"],
                                 "orphan-port": port,
                             }
-                        if neighbor is None:
-                            data["lldp-neighbor"] = ""
-                            data["lldp-neighbor-mgmt-ip"] = ""
-                        else:
-                            data["lldp-neighbor"] = neighbor["chassis_id"]
-                            data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
-                        output.append(data)
+                            if neighbor is None:
+                                data["lldp-neighbor"] = ""
+                                data["lldp-neighbor-mgmt-ip"] = ""
+                            else:
+                                data["lldp-neighbor"] = neighbor["chassis_id"]
+                                data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
+                            output.append(data)
                 else:
                     ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                         "ROW_orphan_ports"
