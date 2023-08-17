@@ -39,7 +39,7 @@ from helper import query_device
 
 FORMAT = "%(message)s"
 logging.basicConfig(
-    level=logging.ERROR, format=FORMAT, datefmt="[%X]", handlers=[RichHandler]
+    level=logging.DEBUG, format=FORMAT, datefmt="[%X]", handlers=[RichHandler]
 )
 
 log = logging.getLogger(__name__)
