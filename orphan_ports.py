@@ -62,6 +62,12 @@ def run_commands(device, commands, mpQueue):
         mpQueue.put(result)
 
 
+def search_neighbors(neighbors, port):
+    for neighbor in neighbors:
+        if neighbor["l_port_id"] == port:
+            return neighbor
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Connects to the Nexus switches listed on the hosts file, "
@@ -127,34 +133,31 @@ if __name__ == "__main__":
                         ]["ROW_orphan_ports"]:
                             ports = vlan["vpc-orphan-ports"].split(",")
                             for port in ports:
+                                neighbor = search_neighbors(neighbors, port)
                                 data = {
                                     "hostname": k,
                                     "mgmt-ip": ip_addr,
                                     "vpc-vlan": vlan["vpc-vlan"],
                                     "orphan-port": port,
+                                    "lldp-neighbor": neighbor["chassis_id"],
+                                    "lldp-neighbor-mgmt-ip": neighbor["mgmt_addr"],
                                 }
-                                neighbor = next(
-                                    (
-                                        item
-                                        for item in neighbors
-                                        if item["l_port_id"] == port
-                                    ),
-                                    None,
-                                )
-                                if neighbor is None:
-                                    data["lldp-neighbor"] = ""
-                                    data["lldp-neighbor-mgmt-ip"] = ""
-                                else:
-                                    data["lldp-neighbor"] = neighbor["chassis_id"]
-                                    data["lldp-neighbor-mgmt-ip"] = neighbor[
-                                        "mgmt_addr"
-                                    ]
+
+                                # if neighbor is None:
+                                #     data["lldp-neighbor"] = ""
+                                #     data["lldp-neighbor-mgmt-ip"] = ""
+                                # else:
+                                #     data["lldp-neighbor"] = neighbor["chassis_id"]
+                                #     data["lldp-neighbor-mgmt-ip"] = neighbor[
+                                #         "mgmt_addr"
+                                #     ]
                                 output.append(data)
                     else:
                         ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                             "ROW_orphan_ports"
                         ]["vpc-orphan-ports"].split(",")
                         for port in ports:
+                            neighbor = search_neighbors(neighbors, port)
                             data = {
                                 "hostname": k,
                                 "mgmt-ip": ip_addr,
@@ -162,21 +165,9 @@ if __name__ == "__main__":
                                     "TABLE_orphan_ports"
                                 ]["ROW_orphan_ports"]["vpc-vlan"],
                                 "orphan-port": port,
+                                "lldp-neighbor": neighbor["chassis_id"],
+                                "lldp-neighbor-mgmt-ip": neighbor["mgmt_addr"],
                             }
-                            neighbor = next(
-                                (
-                                    item
-                                    for item in neighbors
-                                    if item["l_port_id"] == port
-                                ),
-                                None,
-                            )
-                            if neighbor is None:
-                                data["lldp-neighbor"] = ""
-                                data["lldp-neighbor-mgmt-ip"] = ""
-                            else:
-                                data["lldp-neighbor"] = neighbor["chassis_id"]
-                                data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
                             output.append(data)
 
     for row in output:
