@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     mpQueue = multiprocessing.Queue()
     processes = []
-    output = []
+    raw_output = []
 
     for device in devices:
         commands = ["show vpc orphan-ports | json", "show lldp neighbors | json"]
@@ -107,7 +107,65 @@ if __name__ == "__main__":
 
     for p in processes:
         p.join()
-        output.append(mpQueue.get())
+        raw_output.append(mpQueue.get())
+
+    output = []
+    for switch in raw_output:
+        for k, v in switch.items():
+            for ports in v:
+                if "Empty JSON" not in v["show vpc orphan-ports | json"]:
+                    if isinstance(
+                        v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
+                            "ROW_orphan_ports"
+                        ],
+                        list,
+                    ):
+                        for vlan in v["show vpc orphan-ports | json"][
+                            "TABLE_orphan_ports"
+                        ]["ROW_orphan_ports"]:
+                            ports = vlan["vpc-orphan-ports"].split(",")
+                            for port in ports:
+                                data = {
+                                    "hostname": k,
+                                    "vpc-vlan": vlan["vpc-vlan"],
+                                    "orphan-port": port,
+                                }
+                                for neighbor in v["show lldp neighbors | json"][
+                                    "TABLE_nbor"
+                                ]["ROW_nbor"]:
+                                    if port in neighbor["l_port_id"]:
+                                        data["lldp-neighbor"] = neighbor["chassis_id"]
+                                        data["lldp-neighbor-mgmt-ip"] = neighbor[
+                                            "mgmt_addr"
+                                        ]
+                                    else:
+                                        data["lldp-neighbor"] = ""
+                                        data["lldp-neighbor-mgmt-ip"] = ""
+                                output.append(data)
+                    else:
+                        ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
+                            "ROW_orphan_ports"
+                        ]["vpc-orphan-ports"].split(",")
+                        for port in ports:
+                            data = {
+                                "hostname": k,
+                                "vpc-vlan": v["show vpc orphan-ports | json"][
+                                    "TABLE_orphan_ports"
+                                ]["ROW_orphan_ports"]["vpc-vlan"],
+                                "orphan-port": port,
+                            }
+                            for neighbor in v["show lldp neighbors | json"][
+                                "TABLE_nbor"
+                            ]["ROW_nbor"]:
+                                if port in neighbor["l_port_id"]:
+                                    data["lldp-neighbor"] = neighbor["chassis_id"]
+                                    data["lldp-neighbor-mgmt-ip"] = neighbor[
+                                        "mgmt_addr"
+                                    ]
+                                else:
+                                    data["lldp-neighbor"] = ""
+                                    data["lldp-neighbor-mgmt-ip"] = ""
+                            output.append(data)
 
     print(output)
 
