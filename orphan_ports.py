@@ -170,7 +170,8 @@ if __name__ == "__main__":
                                     data["lldp-neighbor-mgmt-ip"] = ""
                             output.append(data)
 
-    print(output)
+    for row in output:
+        print(row)
 
     # if args.csv_report:
     #     d = datetime.now()
@@ -180,20 +181,28 @@ if __name__ == "__main__":
     #         csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
     #     )
 
-    # if args.print_table:
-    #     tbl_columns = ["Hostname", "Management IP", "VPC VLAN", "Orphan Ports"]
-    #     table = reporting.terminal_table_report("Orphan Ports", tbl_columns)
+    if args.print_table:
+        tbl_columns = [
+            "Hostname",
+            "Management IP",
+            "VPC VLAN",
+            "Orphan Port",
+            "LLDP Neighbor",
+            "LLDP Neighbor IP",
+        ]
+        table = reporting.terminal_table_report("Orphan Ports", tbl_columns)
 
-    #     for row in output:
-    #         for vlan in row:
-    #             table.add_row(
-    #                 vlan["hostname"],
-    #                 vlan["mgmt_ip"],
-    #                 vlan["vpc_vlan"],
-    #                 vlan["orphan_ports"],
-    #             )
+        for row in output:
+            table.add_row(
+                row["hostname"],
+                row["mgmt-ip"],
+                row["vpc-vlan"],
+                row["orphan-port"],
+                row["lldp-neighbor"],
+                row["lldp-neighbor-mgmt-ip"],
+            )
 
-    #     console.print(table)
+        console.print(table)
 
     finish_time = datetime.now()
     exec_time = (finish_time - start_time).total_seconds()
