@@ -113,6 +113,7 @@ if __name__ == "__main__":
     for switch in raw_output:
         for k, v in switch.items():
             ip_addr = v["mgmt-ip"]
+            neighbors = v["show lldp neighbors | json"]["TABLE_nbor"]["ROW_nbor"]
             for ports in v:
                 if "Empty JSON" not in v["show vpc orphan-ports | json"]:
                     if isinstance(
@@ -129,7 +130,7 @@ if __name__ == "__main__":
                                 neighbor = next(
                                     (
                                         item
-                                        for item in test
+                                        for item in neighbors
                                         if item["l_port_id"] == port
                                     ),
                                     None,
@@ -149,7 +150,11 @@ if __name__ == "__main__":
                         ]["vpc-orphan-ports"].split(",")
                         for port in ports:
                             neighbor = next(
-                                (item for item in test if item["l_port_id"] == port),
+                                (
+                                    item
+                                    for item in neighbors
+                                    if item["l_port_id"] == port
+                                ),
                                 None,
                             )
                             data = {
