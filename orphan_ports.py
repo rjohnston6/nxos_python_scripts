@@ -103,6 +103,12 @@ if __name__ == "__main__":
     raw_output = []
 
     for device in devices:
+        """
+        Connect to each device in the provided file and query for the
+        orphan-ports along with the lldp neighbors and store outputs from to
+        raw_output for further data formatting.
+        """
+
         commands = ["show vpc orphan-ports | json", "show lldp neighbors | json"]
         p = multiprocessing.Process(
             target=run_commands, args=(device, commands, mpQueue)
@@ -117,6 +123,19 @@ if __name__ == "__main__":
 
     output = []
     for switch in raw_output:
+        """
+        Take each switches output and format the data as preferred outputting
+        to a dictionary in the following format:
+        { hostname: 'hostname',
+          mgmt-ip: 'mgmt-ip'
+          vpc-vlan: 'vpc-vlan',
+          orphan-port: 'port',
+          lldp-neighbor: 'neigbour',
+          lldp-neighbor-mgmt-ip: 'neighbor-ip',
+        }
+        Each dictionary will be added to the output list var for display
+        in tables and csv report as determined by cli flags (-t and/or -r).
+        """
         for k, v in switch.items():
             ip_addr = v["mgmt-ip"]
             neighbors = v["show lldp neighbors | json"]["TABLE_nbor"]["ROW_nbor"]
@@ -167,6 +186,17 @@ if __name__ == "__main__":
                             data["lldp-neighbor"] = neighbor["chassis_id"]
                             data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
                         output.append(data)
+            else:
+                # Handle Switches with no Orphan Ports
+                data = {
+                    "hostname": k,
+                    "mgmt-ip": ip_addr,
+                    "vpc-vlan": "N/A",
+                    "orphan-port": "None Found",
+                    "lldp-neighbor": "",
+                    "lldp-neighbor-mgmt-ip": "",
+                }
+                output.append(data)
 
     if args.csv_report:
         d = datetime.now()
