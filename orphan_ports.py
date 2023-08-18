@@ -63,7 +63,18 @@ def run_commands(device, commands, mpQueue):
 
 
 def orphan_ports(switch):
-    if "AuthenticationError" or "ConnectionTimeOut" in switch.values():
+    if "AuthenticationError" in switch.values():
+        for k, v in switch.items():
+            data = {
+                "hostname": v,
+                "mgmt-ip": k,
+                "vpc-vlan": "",
+                "orphan-port": "",
+                "lldp-neighbor": "",
+                "lldp-neighbor-mgmt-ip": "",
+            }
+            return data
+    elif "ConnectionTimeOut" in switch.values():
         for k, v in switch.items():
             data = {
                 "hostname": v,
@@ -212,70 +223,6 @@ if __name__ == "__main__":
         in tables and csv report as determined by cli flags (-t and/or -r).
         """
         output.append(orphan_ports(switch))
-
-        # for k, v in switch.items():
-        #     if "Empty JSON" not in v["show vpc orphan-ports | json"]:
-        #         if isinstance(
-        #             v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
-        #                 "ROW_orphan_ports"
-        #             ],
-        #             list,
-        #         ):
-        #             ip_addr = v["mgmt-ip"]
-        #             neighbors = v["show lldp neighbors | json"]["TABLE_nbor"][
-        #                 "ROW_nbor"
-        #             ]
-        #             for vlan in v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
-        #                 "ROW_orphan_ports"
-        #             ]:
-        #                 ports = [x.strip() for x in vlan["vpc-orphan-ports"].split(",")]
-        #                 for port in ports:
-        #                     neighbor = search_neighbors(neighbors, port)
-        #                     data = {
-        #                         "hostname": k,
-        #                         "mgmt-ip": ip_addr,
-        #                         "vpc-vlan": vlan["vpc-vlan"],
-        #                         "orphan-port": port,
-        #                     }
-        #                     if neighbor is None:
-        #                         data["lldp-neighbor"] = ""
-        #                         data["lldp-neighbor-mgmt-ip"] = ""
-        #                     else:
-        #                         data["lldp-neighbor"] = neighbor["chassis_id"]
-        #                         data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
-        #                     output.append(data)
-        #         else:
-        #             ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
-        #                 "ROW_orphan_ports"
-        #             ]["vpc-orphan-ports"].split(",")
-        #             for port in ports:
-        #                 neighbor = search_neighbors(neighbors, port)
-        #                 data = {
-        #                     "hostname": k,
-        #                     "mgmt-ip": ip_addr,
-        #                     "vpc-vlan": v["show vpc orphan-ports | json"][
-        #                         "TABLE_orphan_ports"
-        #                     ]["ROW_orphan_ports"]["vpc-vlan"],
-        #                     "orphan-port": port,
-        #                 }
-        #                 if neighbor is None:
-        #                     data["lldp-neighbor"] = ""
-        #                     data["lldp-neighbor-mgmt-ip"] = ""
-        #                 else:
-        #                     data["lldp-neighbor"] = neighbor["chassis_id"]
-        #                     data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
-        #                 output.append(data)
-        #     else:
-        #         # Handle Switches with no Orphan Ports
-        #         data = {
-        #             "hostname": k,
-        #             "mgmt-ip": ip_addr,
-        #             "vpc-vlan": "N/A",
-        #             "orphan-port": "None Found",
-        #             "lldp-neighbor": "",
-        #             "lldp-neighbor-mgmt-ip": "",
-        #         }
-        #         output.append(data)
 
     if args.csv_report:
         d = datetime.now()
