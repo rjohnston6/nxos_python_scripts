@@ -48,8 +48,7 @@ def csv_report(headers, output_file, data):
         writer = csv.DictWriter(file, fieldnames=headers)
         writer.writeheader()
 
-        for rows in data:
-            for row in rows:
-                writer.writerow(row)
+        for row in data:
+            writer.writerow(row)
 
     file.close()

@@ -35,11 +35,11 @@ from rich.logging import RichHandler
 from rich.console import Console
 
 from helper import devices, reporting
-from helper.device_connect import query_device
+from helper import query_device
 
 FORMAT = "%(message)s"
 logging.basicConfig(
-    level=logging.ERROR, format=FORMAT, datefmt="[%X]", handlers=[RichHandler]
+    level=logging.DEBUG, format=FORMAT, datefmt="[%X]", handlers=[RichHandler]
 )
 
 log = logging.getLogger(__name__)
@@ -47,19 +47,111 @@ log = logging.getLogger(__name__)
 console = Console()
 
 
-def run_command(device, mpQueue):
+def run_commands(device, commands, mpQueue):
     """
     This is a wraper of the run_commands function.Original function returns
     a tuple with the device and the Authentication Exception
     When the function gets the tuple it will extract the device and add it
     to the mpQueue
     """
-    result = query_device(device)
+    result = query_device.json_cmd(device, commands)
 
     if isinstance(result, tuple):
         mpQueue.put(None)
     else:
         mpQueue.put(result)
+
+
+def orphan_ports(switch):
+    if "AuthenticationError" in switch.values():
+        for k, v in switch.items():
+            data = {
+                "hostname": v,
+                "mgmt-ip": k,
+                "vpc-vlan": "",
+                "orphan-port": "",
+                "lldp-neighbor": "",
+                "lldp-neighbor-mgmt-ip": "",
+            }
+            return data
+    elif "ConnectionTimeOut" in switch.values():
+        for k, v in switch.items():
+            data = {
+                "hostname": v,
+                "mgmt-ip": k,
+                "vpc-vlan": "",
+                "orphan-port": "",
+                "lldp-neighbor": "",
+                "lldp-neighbor-mgmt-ip": "",
+            }
+            return data
+    for k, v in switch.items():
+        ip_addr = v["mgmt-ip"]
+        neighbors = v["show lldp neighbors | json"]["TABLE_nbor"]["ROW_nbor"]
+        if "Empty JSON" not in v["show vpc orphan-ports | json"]:
+            if isinstance(
+                v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
+                    "ROW_orphan_ports"
+                ],
+                list,
+            ):
+                for vlan in v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
+                    "ROW_orphan_ports"
+                ]:
+                    ports = [x.strip() for x in vlan["vpc-orphan-ports"].split(",")]
+                    for port in ports:
+                        neighbor = search_neighbors(neighbors, port)
+                        data = {
+                            "hostname": k,
+                            "mgmt-ip": ip_addr,
+                            "vpc-vlan": vlan["vpc-vlan"],
+                            "orphan-port": port,
+                        }
+                        if neighbor is None:
+                            data["lldp-neighbor"] = ""
+                            data["lldp-neighbor-mgmt-ip"] = ""
+                        else:
+                            data["lldp-neighbor"] = neighbor["chassis_id"]
+                            data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
+                        return data
+            else:
+                ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
+                    "ROW_orphan_ports"
+                ]["vpc-orphan-ports"].split(",")
+                for port in ports:
+                    neighbor = search_neighbors(neighbors, port)
+                    data = {
+                        "hostname": k,
+                        "mgmt-ip": ip_addr,
+                        "vpc-vlan": v["show vpc orphan-ports | json"][
+                            "TABLE_orphan_ports"
+                        ]["ROW_orphan_ports"]["vpc-vlan"],
+                        "orphan-port": port,
+                    }
+                    if neighbor is None:
+                        data["lldp-neighbor"] = ""
+                        data["lldp-neighbor-mgmt-ip"] = ""
+                    else:
+                        data["lldp-neighbor"] = neighbor["chassis_id"]
+                        data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
+                    return data
+        else:
+            # Handle Switches with no Orphan Ports
+            data = {
+                "hostname": k,
+                "mgmt-ip": ip_addr,
+                "vpc-vlan": "N/A",
+                "orphan-port": "None Found",
+                "lldp-neighbor": "",
+                "lldp-neighbor-mgmt-ip": "",
+            }
+            return data
+
+
+def search_neighbors(neighbors, port):
+    for neighbor in neighbors:
+        if neighbor["l_port_id"] == port:
+            return neighbor
 
 
 if __name__ == "__main__":
@@ -94,38 +186,79 @@ if __name__ == "__main__":
 
     mpQueue = multiprocessing.Queue()
     processes = []
-    output = []
+    raw_output = []
 
     for device in devices:
-        p = multiprocessing.Process(target=run_command, args=(device, mpQueue))
+        """
+        Connect to each device in the provided file and query for the
+        orphan-ports along with the lldp neighbors and store outputs from to
+        raw_output for further data formatting.
+        """
+
+        commands = ["show vpc orphan-ports | json", "show lldp neighbors | json"]
+        p = multiprocessing.Process(
+            target=run_commands, args=(device, commands, mpQueue)
+        )
 
         processes.append(p)
         p.start()
 
     for p in processes:
         p.join()
-        output.append(mpQueue.get())
+        raw_output.append(mpQueue.get())
+
+    output = []
+    for switch in raw_output:
+        """
+        Take each switches output and format the data as preferred outputting
+        to a dictionary in the following format:
+        { hostname: 'hostname',
+          mgmt-ip: 'mgmt-ip'
+          vpc-vlan: 'vpc-vlan',
+          orphan-port: 'port',
+          lldp-neighbor: 'neigbour',
+          lldp-neighbor-mgmt-ip: 'neighbor-ip',
+        }
+        Each dictionary will be added to the output list var for display
+        in tables and csv report as determined by cli flags (-t and/or -r).
+        """
+        output.append(orphan_ports(switch))
 
     if args.csv_report:
         d = datetime.now()
-        csv_headers = ["hostname", "mgmt_ip", "vpc_vlan", "orphan_ports"]
+        csv_headers = [
+            "hostname",
+            "mgmt-ip",
+            "vpc-vlan",
+            "orphan-port",
+            "lldp-neighbor",
+            "lldp-neighbor-mgmt-ip",
+        ]
         # Generate csv report with included date and time of creation.
         reporting.csv_report(
             csv_headers, f"orphan_ports_{d.strftime('%d%m%y_%H%M%S')}.csv", output
         )
 
     if args.print_table:
-        tbl_columns = ["Hostname", "Management IP", "VPC VLAN", "Orphan Ports"]
+        tbl_columns = [
+            "Hostname",
+            "Management IP",
+            "VPC VLAN",
+            "Orphan Port",
+            "LLDP Neighbor",
+            "LLDP Neighbor IP",
+        ]
         table = reporting.terminal_table_report("Orphan Ports", tbl_columns)
 
         for row in output:
-            for vlan in row:
-                table.add_row(
-                    vlan["hostname"],
-                    vlan["mgmt_ip"],
-                    vlan["vpc_vlan"],
-                    vlan["orphan_ports"],
-                )
+            table.add_row(
+                row["hostname"],
+                row["mgmt-ip"],
+                row["vpc-vlan"],
+                row["orphan-port"],
+                row["lldp-neighbor"],
+                row["lldp-neighbor-mgmt-ip"],
+            )
 
         console.print(table)
 
