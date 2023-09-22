@@ -226,7 +226,7 @@ if __name__ == "__main__":
         """
         port_list = orphan_ports(switch)
         for port in port_list:
-            output.append(orphan_ports(switch))
+            output.append(orphan_ports(port))
 
     if args.csv_report:
         d = datetime.now()
