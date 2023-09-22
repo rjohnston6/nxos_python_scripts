@@ -37,8 +37,8 @@ def get_credentials():
     This funciton ask for User and Password for the devices.
     """
 
-    user = Prompt.ask(f"Enter Username for Device Connectivity: ")
-    pwd = Prompt.ask(f"Enter Password for Device Connectivity: ", password=True)
+    user = Prompt.ask(f"Enter Username for Device Connectivity")
+    pwd = Prompt.ask(f"Enter Password for Device Connectivity", password=True)
 
     return (user, pwd)
 
