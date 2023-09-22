@@ -106,7 +106,7 @@ def orphan_ports(switch):
                             "hostname": k,
                             "mgmt-ip": ip_addr,
                             "vpc-vlan": vlan["vpc-vlan"],
-                            "orphan-port": port,
+                            "orphan-port": port.strip(),
                         }
                         if neighbor is None:
                             data["lldp-neighbor"] = ""
@@ -127,7 +127,7 @@ def orphan_ports(switch):
                         "vpc-vlan": v["show vpc orphan-ports | json"][
                             "TABLE_orphan_ports"
                         ]["ROW_orphan_ports"]["vpc-vlan"],
-                        "orphan-port": port,
+                        "orphan-port": port.strip(),
                     }
                     if neighbor is None:
                         data["lldp-neighbor"] = ""
