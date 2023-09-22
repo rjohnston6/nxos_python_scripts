@@ -63,6 +63,7 @@ def run_commands(device, commands, mpQueue):
 
 
 def orphan_ports(switch):
+    o_port = []
     if "AuthenticationError" in switch.values():
         for k, v in switch.items():
             data = {
@@ -73,7 +74,7 @@ def orphan_ports(switch):
                 "lldp-neighbor": "",
                 "lldp-neighbor-mgmt-ip": "",
             }
-            return data
+            return o_port.append(data)
     elif "ConnectionTimeOut" in switch.values():
         for k, v in switch.items():
             data = {
@@ -84,7 +85,7 @@ def orphan_ports(switch):
                 "lldp-neighbor": "",
                 "lldp-neighbor-mgmt-ip": "",
             }
-            return data
+            return o_port.append(data)
     for k, v in switch.items():
         ip_addr = v["mgmt-ip"]
         neighbors = v["show lldp neighbors | json"]["TABLE_nbor"]["ROW_nbor"]
@@ -105,7 +106,7 @@ def orphan_ports(switch):
                             "hostname": k,
                             "mgmt-ip": ip_addr,
                             "vpc-vlan": vlan["vpc-vlan"],
-                            "orphan-port": port,
+                            "orphan-port": port.strip(),
                         }
                         if neighbor is None:
                             data["lldp-neighbor"] = ""
@@ -113,7 +114,7 @@ def orphan_ports(switch):
                         else:
                             data["lldp-neighbor"] = neighbor["chassis_id"]
                             data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
-                        return data
+                        o_port.append(data)
             else:
                 ports = v["show vpc orphan-ports | json"]["TABLE_orphan_ports"][
                     "ROW_orphan_ports"
@@ -126,7 +127,7 @@ def orphan_ports(switch):
                         "vpc-vlan": v["show vpc orphan-ports | json"][
                             "TABLE_orphan_ports"
                         ]["ROW_orphan_ports"]["vpc-vlan"],
-                        "orphan-port": port,
+                        "orphan-port": port.strip(),
                     }
                     if neighbor is None:
                         data["lldp-neighbor"] = ""
@@ -134,7 +135,7 @@ def orphan_ports(switch):
                     else:
                         data["lldp-neighbor"] = neighbor["chassis_id"]
                         data["lldp-neighbor-mgmt-ip"] = neighbor["mgmt_addr"]
-                    return data
+                    o_port.append(data)
         else:
             # Handle Switches with no Orphan Ports
             data = {
@@ -145,7 +146,8 @@ def orphan_ports(switch):
                 "lldp-neighbor": "",
                 "lldp-neighbor-mgmt-ip": "",
             }
-            return data
+            o_port.append(data)
+    return o_port
 
 
 def search_neighbors(neighbors, port):
@@ -222,7 +224,9 @@ if __name__ == "__main__":
         Each dictionary will be added to the output list var for display
         in tables and csv report as determined by cli flags (-t and/or -r).
         """
-        output.append(orphan_ports(switch))
+        port_list = orphan_ports(switch)
+        for port in port_list:
+            output.append(port)
 
     if args.csv_report:
         d = datetime.now()
