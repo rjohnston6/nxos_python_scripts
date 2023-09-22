@@ -14,6 +14,10 @@ Inital features include options to display data in 2 methods.
 - Output to a formatted table on the terminal for quick point in time analysis
 - Optionally, export to a csv file the returned results.
 
+## Requirements
+The scripts created are tested using python version 3.11.4 and are not validated against previous versions. To avoid issues ensure python version meets the minumum version of 3.11.4 and python libraries/modules match the versions listed in the ```requirments.txt``` file. 
+
+Please adhere to the practice of using Python virtual environments to avoid inadvertently upgrading versions of python and associated libraries used by your systems operating system.
 ## Usage
 
 To use the included scripts start by cloning the repo to your local development machine. 
